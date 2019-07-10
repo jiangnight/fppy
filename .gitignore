@@ -1,0 +1,9 @@
+dist/
+build/
+.idea/*
+.idea_modules/
+*.iml
+*.pyc
+*.swp
+MANIFEST
+*.egg-info
