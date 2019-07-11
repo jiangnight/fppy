@@ -9,39 +9,78 @@ class Fp(object):
         for i in self.data:
             func(i)
 
-    def maps(self,func:'f:A=>A') ->list:
-        return list(map(func,self.data))
+    # iterator[A]=>iterator[A]
+    def maps(self,func:'f:A=>A') -> 'Fp[List[A]]':
+        temp = list(map(func,self.data))
+        return Fp(temp)
 
-    def filters(self,func:'f:A=>Boolean') -> list:
-        return list(filter(func,self.data))
+    # iterator[A]=>iterator[A]
+    def filters(self,func:'f:A=>Boolean') -> 'Fp[List[A]]':
+        return Fp(list(filter(func,self.data)))
     
-    def filterNot(self,func:'f:A=>Boolean') -> list:
+    #iterator[A]=>iterator[A]
+    def filterNot(self,func:'f:A=>Boolean') -> 'Fp[List[A]]':
         temp = []
         for i in self.data:
             if not (func(i)):
                 temp.append(i)
-        return temp
-
-    def flatten(self) ->list:
+        return Fp(temp)
+    
+    #iterator[iterator[A]]=>iterator[A]
+    def flatten(self) ->'Fp[List]':
         temp = []
         for item in self.data:
             for i in item:
                 temp.append(i)
-        return temp
+        return Fp(temp)
     
-    def flatMap(self,func:'f:A=>List[B]') ->'List[B]':
-        new_list = self.maps(func)
-        return Fp(new_list).flatten()
-        
+    #iterator[A]=>iterator[B]
+    def flatMap(self,func:'f:A=>List[B]') -> 'Fp[List[B]]':
+        return self.maps(func).flatten()
 
-    def reduces(self,func:'f:(A,A)=>A') ->'A':
-        return reduce(func,self.data)
 
-    def fold(self,init:'B',func:'f:(B,A)=>B') ->'B':
+    #iterator[A]=>A
+    def reduces(self,func:'f:(A,A)=>A') ->'Fp[A]':
+        return Fp(reduce(func,self.data))
+
+    # Iterator[(A,B)] => dict[A,B]
+    def reduceByKey(self,func:'f:(A,A)=>A') -> 'Fp[dict[(K,V)]]':
+        tempdict = {}
+        for item in self.data:
+            if tempdict.__contains__(item[0]):
+                tempdict[item[0]] = func(tempdict[item[0]],item[1])
+            else:
+                tempdict[item[0]]=item[1]
+        return Fp(tempdict)
+
+    #iterator[A]=>A
+    def fold(self,init:'B',func:'f:(B,A)=>B') ->'Fp[B]':
         temp = init
         for i in self.data:
             temp = func(temp,i)
-        return temp
+        return Fp(temp)
+
+    #Itrator[A] => dict[B,List[A]]
+    def groupBy(self,func: 'f:A=>B') -> 'Fp[dict[B,List[A]]]':
+        tempdict = {}
+        for i in self.data:
+            key = func(i)
+            if tempdict.__contains__(key):
+                tempdict[key].append(i)
+            else:
+                tempdict[key]=[]
+                tempdict[key].append(i)
+        return Fp(tempdict)
+        
+
+
+    ## dict[K,V] => dict[K,V]
+    def mapValues(self,func:"f:V=>T") -> 'dict[K,T]':
+        dictdata = {}
+        for (k,v) in self.data.items():
+            dictdata[k] = func(v)
+        return Fp(dictdata)
+
 
 
     def test(self):
